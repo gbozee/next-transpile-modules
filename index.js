@@ -33,10 +33,9 @@ const safePath = (module) => module.split('/').join(PATH_DELIMITER);
 /**
  * Actual Next.js plugin
  */
-const withTm = (nextConfig = {}) => {
-  const { transpileModules = [] } = nextConfig;
-  const includes = generateIncludes(transpileModules);
-  const excludes = generateExcludes(transpileModules);
+const withTm = ({ modules = [] } = {}) => (nextConfig = {}) => {
+  const includes = generateIncludes(modules);
+  const excludes = generateExcludes(modules);
 
   return Object.assign({}, nextConfig, {
     webpack(config, options) {

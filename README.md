@@ -12,13 +12,13 @@ This plugin aims to solve the following challenges:
 
 What this plugin **does not aim** to solve:
 
-- any-package IE11-compatible maker
+- any-package IE11-compatible maker (though it may work _in some cases_)
 
 ## Compatibility table
 
 | Next.js version | Plugin version |
-|-----------------|----------------|
-| Next.js 8 / 9   | 2.x            |
+| --------------- | -------------- |
+| Next.js 8 / 9   | 2.x, 3.x       |
 | Next.js 6 / 7   | 1.x            |
 
 ## Installation
@@ -39,26 +39,24 @@ Classic:
 
 ```js
 // next.config.js
-const withTM = require('next-transpile-modules');
-
-module.exports = withTM({
-  transpileModules: ['somemodule', 'and-another']
+const withTM = require('next-transpile-modules')({
+  modules: ['somemodule', 'and-another']
 });
+
+module.exports = withTM({});
 ```
 
 **note:** please declare `withTM` as your last plugin (the "most nested" one).
 
-Example with `next-typescript`:
+Example with `@next/bundle-analyzer`:
 
 ```js
-const withTypescript = require('@zeit/next-typescript');
-const withTM = require('next-transpile-modules');
+const withBundleAnalyzer = require('@next/bundle-analyzer')();
+const withTM = require('next-transpile-modules')({
+  transpileModules: ['somemodule', 'and-another']
+});
 
-module.exports = withTypescript(
-  withTM({
-    transpileModules: ['somemodule', 'and-another']
-  })
-);
+module.exports = withBundleAnalyzer(withTM({}));
 ```
 
 With `next-compose-plugins`:
@@ -66,15 +64,12 @@ With `next-compose-plugins`:
 ```js
 const withPlugins = require('next-compose-plugins');
 
-const withTypescript = require('@zeit/next-typescript');
-const withTM = require('next-transpile-modules');
+const withBundleAnalyzer = require('@next/bundle-analyzer')();
+const withTM = require('next-transpile-modules')({
+  modules: ['some-module', 'and-another']
+});
 
-module.exports = withPlugins([
-  [withTM, {
-    transpileModules: ['some-module', 'and-another'],
-  }],
-  withTypescript,
-], {
+module.exports = withPlugins([withTM, withBundleAnalyzer], {
   // ...
 });
 ```
@@ -94,7 +89,7 @@ If you have a transpilation error when loading a page, check that your `babel.co
 
 ### I have trouble with transpilation and Flow/TypeScript
 
-In your Next.js app, make sure you use a `babel.config.js` and not a `.babelrc` as Babel's configuration file (see explanation below). 
+In your Next.js app, make sure you use a `babel.config.js` and not a `.babelrc` as Babel's configuration file (see explanation below).
 
 **Since Next.js 9, you probably don't need that file anymore**, as TypeScript is supported natively.
 
@@ -121,19 +116,20 @@ So you are probably [using it wrong](https://github.com/martpie/next-transpile-m
 You may need to tell your Webpack configuration how to properly resolve your scoped packages, as they won't be installed in your Next.js directory, but the root of your Lerna setup.
 
 ```js
-const withTM = require('next-transpile-modules');
+const withTM = require('next-transpile-modules')({
+  modules: ['@your-project/shared', '@your-project/styleguide']
+});
 
 module.exports = withTM({
-  transpileModules: ['@your-project/shared', '@your-project/styleguide'],
   webpack: (config, options) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       // Will make webpack look for these modules in parent directories
       '@your-project/shared': require.resolve('@your-project/shared'),
-      '@your-project/styleguide': require.resolve('@your-project/styleguide'),
+      '@your-project/styleguide': require.resolve('@your-project/styleguide')
       // ...
     };
     return config;
-  },
+  }
 });
 ```
