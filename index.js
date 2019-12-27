@@ -34,7 +34,7 @@ const safePath = (module) => module.split('/').join(PATH_DELIMITER);
  * Actual Next.js plugin
  */
 const withTm = (nextConfig = {}) => {
-  const { transpileModules = [] } = nextConfig;
+  const { transpileModules = [], loaderFunc = (x) => x } = nextConfig;
   const includes = generateIncludes(transpileModules);
   const excludes = generateExcludes(transpileModules);
 
@@ -67,7 +67,7 @@ const withTm = (nextConfig = {}) => {
       // Add a rule to include and parse all modules
       config.module.rules.push({
         test: /\.+(js|jsx|ts|tsx)$/,
-        loader: options.defaultLoaders.babel,
+        loader: loaderFunc(options.defaultLoaders.babel),
         include: includes
       });
 
